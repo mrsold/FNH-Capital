@@ -28,9 +28,24 @@ async function startServer() {
   app.use(express.json());
 
   app.get("/api/health", (req, res) => {
+    // Determine the dist path identical to the serving logic below
+    let distPath = path.join(process.cwd(), 'dist');
+    let resolutionMethod = "default_dist";
+
+    if (fs.existsSync(path.join(process.cwd(), 'assets')) && fs.existsSync(path.join(process.cwd(), 'index.html'))) {
+      distPath = process.cwd();
+      resolutionMethod = "cwd_is_dist";
+    } else if (fs.existsSync(path.join(process.cwd(), 'dist', 'index.html'))) {
+      distPath = path.join(process.cwd(), 'dist');
+      resolutionMethod = "found_dist_subfolder";
+    }
+
     res.json({ 
       status: "ok", 
       mode: process.env.NODE_ENV,
+      resolution: resolutionMethod,
+      distPath: distPath,
+      indexExists: fs.existsSync(path.join(distPath, 'index.html')),
       cwd: process.cwd(),
       dirname: __dirname,
       filename: __filename
@@ -39,15 +54,23 @@ async function startServer() {
 
   app.get("/api/debug", (req, res) => {
     try {
+      const distPath = fs.existsSync(path.join(process.cwd(), 'dist')) ? path.join(process.cwd(), 'dist') : process.cwd();
       const files = fs.readdirSync(process.cwd());
-      const distExists = fs.existsSync(path.join(process.cwd(), 'dist'));
-      const distFiles = distExists ? fs.readdirSync(path.join(process.cwd(), 'dist')) : [];
+      const distFiles = fs.existsSync(distPath) ? fs.readdirSync(distPath) : [];
       
+      let indexSnippet = "Not found";
+      const indexPath = path.join(distPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        const content = fs.readFileSync(indexPath, 'utf-8');
+        indexSnippet = content.substring(0, 500); // Send first 500 chars to check if it's the right file
+      }
+
       res.json({
         cwd: process.cwd(),
+        resolutionDist: distPath,
         files,
-        distExists,
         distFiles,
+        indexSnippet,
         env: {
           NODE_ENV: process.env.NODE_ENV,
           PORT: process.env.PORT
@@ -135,20 +158,24 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-  // In production, we need the 'dist' folder which contains the built React app.
+    // In production, we need the 'dist' folder which contains the built React app.
+    // We try multiple common locations because cPanel environments can be tricky.
     let distPath = path.join(process.cwd(), 'dist');
     
-    // Priority 1: If current folder contains 'assets' and 'index.html', we are likely INSIDE dist already.
+    // Check 1: Are we running from inside the dist folder?
     if (fs.existsSync(path.join(process.cwd(), 'assets')) && fs.existsSync(path.join(process.cwd(), 'index.html'))) {
       distPath = process.cwd();
     } 
-    // Priority 2: Use the 'dist' subfolder if it exists.
+    // Check 2: Is there a dist subfolder?
     else if (fs.existsSync(path.join(process.cwd(), 'dist', 'index.html'))) {
       distPath = path.join(process.cwd(), 'dist');
     }
-    // Fallback: This might serve the source index.html (which is blank), so we log a warning.
+    // Check 3: Is it relative to the script location?
+    else if (fs.existsSync(path.join(__dirname, 'index.html'))) {
+      distPath = __dirname;
+    }
     else {
-      console.warn("[Warning] Production dist/index.html not found. Defaulting to CWD.");
+      console.warn("[Warning] Production index.html not found. Defaulting to CWD.");
       distPath = process.cwd();
     }
 
@@ -161,17 +188,17 @@ async function startServer() {
       // Safety check: Is this the source index.html or the built one?
       if (fs.existsSync(indexPath)) {
         const content = fs.readFileSync(indexPath, 'utf-8');
-        // Source index.html has /src/main.tsx or vite - built one has /assets/index-
+        // Source index.html has /src/main.tsx - built one has /assets/index-
         if (content.includes('/src/main.tsx') || content.includes('@vite/client')) {
-           console.error("[Critical] Detected SOURCE index.html instead of BUILT index.html. Your page will be blank. Ensure 'dist' folder is uploaded.");
-           return res.status(500).send("Configuration Error: The server is pointing to the source directory instead of the 'dist' directory. Please ensure your cPanel Application Root and Startup File are correct.");
+           console.error("[Critical] Detected SOURCE index.html instead of BUILT index.html. Your page will be blank.");
+           return res.status(500).send("Configuration Error: The server is serving the source code index.html instead of the 'dist' build. Please ensure you have run 'npm run build' and the 'dist' folder is correctly placed.");
         }
       }
 
       res.sendFile(indexPath, (err) => {
         if (err) {
           console.error(`Error sending index.html from ${indexPath}:`, err);
-          res.status(500).send("Server Error: Static files (index.html) not found. Checked: " + indexPath + ". Current CWD: " + process.cwd());
+          res.status(500).send(`Server Error: index.html not found at ${indexPath}. Please check your deployment folders.`);
         }
       });
     });
