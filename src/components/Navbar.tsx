@@ -66,6 +66,7 @@ export default function Navbar() {
   };
 
   return (
+    <>
     <motion.nav 
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -212,13 +213,7 @@ export default function Navbar() {
             {t.nav.apply}
           </button>
         </div>
-
-        {/* Auth Modal */}
-        <AuthModal 
-          isOpen={isAuthModalOpen} 
-          onClose={() => setIsAuthModalOpen(false)} 
-        />
-
+        
         {/* Mobile menu icon (simplified) */}
         <div className="md:hidden">
           <button className="p-2 text-slate-600">
@@ -229,5 +224,10 @@ export default function Navbar() {
         </div>
       </div>
     </motion.nav>
+    <AuthModal 
+      isOpen={isAuthModalOpen} 
+      onClose={() => setIsAuthModalOpen(false)} 
+    />
+    </>
   );
 }

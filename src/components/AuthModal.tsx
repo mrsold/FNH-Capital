@@ -116,15 +116,16 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl relative overflow-hidden"
+        className="w-full max-w-lg max-h-[90vh] bg-white rounded-[2.5rem] shadow-2xl relative overflow-y-auto scrollbar-hide"
       >
         <button 
           onClick={onClose}
           className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all z-10"
+          aria-label="Close modal"
         >
           <X className="w-5 h-5" />
         </button>
@@ -319,20 +320,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </>
             )}
 
-            <div className="flex gap-3">
-              {mode === 'signup' && step === 2 && (
-                <button 
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
-                >
-                  Back
-                </button>
-              )}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <button 
                 disabled={loading}
                 type="submit"
-                className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg flex items-center justify-center gap-2 group disabled:opacity-50"
+                className="flex-[2] py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg flex items-center justify-center gap-2 group disabled:opacity-50 order-1 sm:order-2"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -343,6 +335,24 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </>
                 )}
               </button>
+              
+              {mode === 'signup' && step === 2 ? (
+                <button 
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all order-2 sm:order-1"
+                >
+                  Back
+                </button>
+              ) : (
+                <button 
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 py-4 bg-slate-50 text-slate-500 rounded-2xl font-bold hover:bg-slate-100 transition-all order-2 sm:order-1"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </form>
 
