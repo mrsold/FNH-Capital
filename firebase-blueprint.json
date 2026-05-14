@@ -1,0 +1,55 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile with role and contact information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["investor", "borrower", "admin"] },
+        "displayName": { "type": "string" },
+        "investAmount": { "type": "string" },
+        "isAccredited": { "type": "boolean" },
+        "loanType": { "type": "string" },
+        "loanAmount": { "type": "number" },
+        "propertyValue": { "type": "number" },
+        "duration": { "type": "string" },
+        "experience": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Deal": {
+      "title": "Property Deal",
+      "description": "Property investment deal details",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Funding", "Closed"] },
+        "imageUrl": { "type": "string" },
+        "loanAmount": { "type": "number" },
+        "interestRate": { "type": "string" },
+        "loanPeriod": { "type": "string" },
+        "propertyType": { "type": "string" },
+        "location": { "type": "string" },
+        "fundingProgress": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User collection"
+    },
+    "/deals/{dealId}": {
+      "schema": "Deal",
+      "description": "Investment deals"
+    }
+  }
+}
