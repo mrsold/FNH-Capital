@@ -1,5 +1,5 @@
 import { motion, useScroll, useSpring, AnimatePresence } from "motion/react";
-import { LogIn, LogOut, ShieldCheck, Languages, ChevronDown, LayoutDashboard } from "lucide-react";
+import { LogIn, LogOut, ShieldCheck, Languages, ChevronDown, LayoutDashboard, Calculator } from "lucide-react";
 import { auth } from "../lib/firebase";
 import { signOut } from "firebase/auth";
 import { useState } from "react";
@@ -7,6 +7,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { useUser } from "../contexts/UserContext";
 import { Link, useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal";
+import CalculatorModal from "./CalculatorModal";
 
 export default function Navbar() {
   const { scrollYProgress } = useScroll();
@@ -25,15 +26,17 @@ export default function Navbar() {
   const [isInvestorsOpen, setIsInvestorsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
 
   const navItems = [
     { label: t.nav.services, id: "services" },
-    { label: t.nav.deals, id: "deals" },
     { 
       label: t.nav.investors, 
       id: "investors",
       subItems: [
         { label: t.investors.badge, id: "investors" },
+        { label: t.nav.deals, id: "deals" },
+        { label: t.nav.calculator, id: "calculator" },
         { label: 'FAQ', id: "faq" }
       ]
     },
@@ -42,6 +45,10 @@ export default function Navbar() {
   ];
 
   const handleNavClick = (id: string, isFaq?: boolean) => {
+    if (id === 'calculator') {
+      setIsCalculatorOpen(true);
+      return;
+    }
     if (window.location.pathname !== '/') {
       navigate('/');
       setTimeout(() => {
@@ -227,6 +234,10 @@ export default function Navbar() {
     <AuthModal 
       isOpen={isAuthModalOpen} 
       onClose={() => setIsAuthModalOpen(false)} 
+    />
+    <CalculatorModal
+      isOpen={isCalculatorOpen}
+      onClose={() => setIsCalculatorOpen(false)}
     />
     </>
   );
