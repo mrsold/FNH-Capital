@@ -54,12 +54,12 @@ export default function Contact() {
     setFormError(null);
     
     if (!acceptedTerms) {
-      setFormError(role === "borrower" ? "Please accept the terms and confirm commercial purpose." : "Please accept the terms.");
+      setFormError(role === "borrower" ? t.contact.form.humanError : t.contact.form.humanError); // Using existing error key or could add more specific ones
       return;
     }
 
     if (!isHuman) {
-      setFormError("Please solve the human verification math problem correctly.");
+      setFormError(t.contact.form.humanError);
       return;
     }
     
@@ -151,7 +151,7 @@ export default function Contact() {
                   </svg>
                 </div>
                 <div>
-                  <div className="text-sm text-slate-400 uppercase tracking-widest mb-1">WeChat</div>
+                  <div className="text-sm text-slate-400 uppercase tracking-widest mb-1">{t.contact.wechat}</div>
                   <div className="text-xl font-medium">SFBroker</div>
                 </div>
               </div>
@@ -304,7 +304,7 @@ export default function Contact() {
                         onChange={(e) => setInvestAmount(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:outline-none focus:border-amber-700/30 transition-all appearance-none text-sm"
                       >
-                        <option value="">Select Amount</option>
+                        <option value="">{t.contact.form.selectAmount}</option>
                         {t.contact.form.investAmountOptions.map((opt: string) => (
                           <option key={opt} value={opt}>{opt}</option>
                         ))}
@@ -341,7 +341,7 @@ export default function Contact() {
                   rows={2} 
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder={role === "borrower" ? t.contact.form.msgPlaceholder : "Any specific investment goals?"} 
+                  placeholder={role === "borrower" ? t.contact.form.msgPlaceholder : t.contact.form.msgPlaceholderInvestor} 
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:outline-none focus:border-amber-700/30 transition-all resize-none text-sm" 
                 />
               </div>
@@ -356,7 +356,7 @@ export default function Contact() {
                 />
                 <div className="flex items-center gap-1.5">
                   <label htmlFor="terms" className="text-[11px] leading-relaxed text-slate-500 cursor-pointer">
-                    {role === "borrower" ? t.contact.form.termsLabel : "I accept the service terms and privacy policy."}
+                    {role === "borrower" ? t.contact.form.termsLabel : t.contact.form.termsLabelInvestor}
                   </label>
                   <button 
                     type="button"
@@ -372,7 +372,7 @@ export default function Contact() {
               <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 space-y-3">
                 <label className="text-xs font-bold uppercase tracking-wider text-amber-800 flex justify-between items-center">
                   <span>{t.contact.form.humanCheck}</span>
-                  {isHuman && <span className="text-green-600 flex items-center gap-1"><Send className="w-3 h-3" /> Verified</span>}
+                  {isHuman && <span className="text-green-600 flex items-center gap-1"><Send className="w-3 h-3" /> {t.contact.form.verified}</span>}
                 </label>
                 <div className="flex items-center gap-4">
                   <div className="text-lg font-bold font-serif text-slate-900 bg-white px-4 py-2 rounded-lg border border-amber-100">
@@ -399,7 +399,7 @@ export default function Contact() {
                 disabled={formStatus === "success" || formStatus === "loading"}
                 className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 group shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {formStatus === "loading" ? "Sending..." : formStatus === "success" ? t.contact.form.success : t.contact.form.submit}
+                {formStatus === "loading" ? t.contact.form.sending : formStatus === "success" ? t.contact.form.success : t.contact.form.submit}
                 <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               </button>
             </form>
@@ -425,11 +425,11 @@ export default function Contact() {
               className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden p-8 text-slate-900"
             >
               <h4 className="text-xl font-serif font-bold text-slate-900 mb-4 uppercase tracking-wider text-amber-700">
-                {activeModal === 'accredited' ? 'Accredited Investor Requirement' : t.contact.form.termsTitle}
+                {activeModal === 'accredited' ? t.contact.form.accreditedTitle : t.contact.form.termsTitle}
               </h4>
               <div className="text-sm text-slate-600 leading-relaxed space-y-4">
                 {activeModal === 'accredited' ? (
-                  <p>An accredited investor, proving an income over $200,000 (or $300,000 with a spouse) or a net worth exceeding $1 million.</p>
+                  <p>{t.contact.form.accreditedDesc}</p>
                 ) : (
                   <div className="whitespace-pre-line">{t.contact.form.termsContent}</div>
                 )}
@@ -439,7 +439,7 @@ export default function Contact() {
                 onClick={() => setActiveModal(null)}
                 className="mt-8 w-full py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all"
               >
-                Close
+                {t.contact.form.modalClose}
               </button>
             </motion.div>
           </div>
@@ -466,16 +466,16 @@ export default function Contact() {
               <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Send className="w-8 h-8" />
               </div>
-              <h4 className="text-2xl font-serif font-bold text-slate-900 mb-2">Message Sent!</h4>
+              <h4 className="text-2xl font-serif font-bold text-slate-900 mb-2">{t.contact.form.successModalTitle}</h4>
               <p className="text-slate-600 mb-8">
-                Thank you for your inquiry. A copy has been sent to our team, and we will get back to you shortly.
+                {t.contact.form.successModalDesc}
               </p>
               <button 
                 type="button"
                 onClick={() => setShowSuccessModal(false)}
                 className="w-full py-3 bg-amber-700 text-white rounded-xl font-bold hover:bg-amber-800 transition-all shadow-lg"
               >
-                Great, thanks!
+                {t.contact.form.successModalBtn}
               </button>
             </motion.div>
           </div>

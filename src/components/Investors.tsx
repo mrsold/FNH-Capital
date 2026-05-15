@@ -105,7 +105,7 @@ export default function Investors() {
               >
                 <div className="flex items-center justify-between p-8 border-b border-slate-100">
                   <h2 className="text-3xl font-serif font-bold text-slate-900">
-                    Investor <span className="text-amber-700">FAQ</span>
+                    <span className="text-amber-700">{t.nav.faq}</span>
                   </h2>
                   <button 
                     onClick={() => setShowFaqModal(false)}

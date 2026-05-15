@@ -35,7 +35,7 @@ export default function InvestorJoinModal({ isOpen, onClose }: InvestorJoinModal
       }, 3000);
     } catch (error) {
       console.error("Error joining as investor:", error);
-      alert("Submission failed. Please try again.");
+      alert(t.deals.joinModal.error);
     } finally {
       setIsSubmitting(false);
     }
@@ -63,8 +63,8 @@ export default function InvestorJoinModal({ isOpen, onClose }: InvestorJoinModal
                 <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 className="w-10 h-10 text-emerald-600" />
                 </div>
-                <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">Welcome Aboard!</h3>
-                <p className="text-slate-500 font-medium pb-8">Thank you for joining our investor network. We will contact you shortly with curated opportunities.</p>
+                <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">{t.deals.joinModal.successTitle}</h3>
+                <p className="text-slate-500 font-medium pb-8">{t.deals.joinModal.successSubtitle}</p>
               </div>
             ) : (
               <div className="p-8 md:p-12">
@@ -74,8 +74,8 @@ export default function InvestorJoinModal({ isOpen, onClose }: InvestorJoinModal
                       <UserPlus className="w-6 h-6" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-serif font-bold text-slate-900 tracking-tight">Join Investor Network</h2>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Exclusive FNH Capital Portal</p>
+                      <h2 className="text-2xl font-serif font-bold text-slate-900 tracking-tight">{t.deals.joinModal.title}</h2>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">{t.deals.joinModal.subtitle}</p>
                     </div>
                   </div>
                   <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
@@ -85,7 +85,7 @@ export default function InvestorJoinModal({ isOpen, onClose }: InvestorJoinModal
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
+                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">{t.deals.joinModal.fullName}</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input 
@@ -99,7 +99,7 @@ export default function InvestorJoinModal({ isOpen, onClose }: InvestorJoinModal
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
+                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">{t.deals.joinModal.email}</label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input 
@@ -114,7 +114,7 @@ export default function InvestorJoinModal({ isOpen, onClose }: InvestorJoinModal
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">Phone Number</label>
+                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">{t.deals.joinModal.phone}</label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input 
@@ -135,12 +135,12 @@ export default function InvestorJoinModal({ isOpen, onClose }: InvestorJoinModal
                       className="mt-1 w-5 h-5 rounded-lg border-amber-200 text-amber-600 focus:ring-amber-500/20"
                     />
                     <label htmlFor="accredited-join" className="text-[11px] font-bold text-slate-700 cursor-pointer select-none leading-relaxed">
-                      {t.contact.form.accreditedCert}
+                      {t.deals.joinModal.accreditedCert}
                     </label>
                   </div>
 
                   <p className="text-[10px] text-slate-400 italic text-center px-6">
-                    By joining, you agree to be contacted by FNH Capital regarding investment opportunities. Information provided is kept strictly confidential.
+                    {t.deals.joinModal.terms}
                   </p>
 
                   <button 
@@ -152,7 +152,7 @@ export default function InvestorJoinModal({ isOpen, onClose }: InvestorJoinModal
                     ) : (
                       <>
                         <TrendingUp className="w-5 h-5" />
-                        Join Investor Group
+                        {t.deals.joinModal.submit}
                       </>
                     )}
                   </button>

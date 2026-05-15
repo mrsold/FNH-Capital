@@ -30,6 +30,7 @@ interface DealCardProps {
 }
 
 function DealCard({ loan, idx, profile, onSelect }: DealCardProps) {
+  const { t } = useLanguage();
   const [currentIdx, setCurrentIdx] = useState(0);
   const navigate = useNavigate();
 
@@ -92,7 +93,7 @@ function DealCard({ loan, idx, profile, onSelect }: DealCardProps) {
         {loan.isFeatured && (
           <div className="absolute top-6 left-6 flex items-center gap-2 px-3 py-1.5 bg-amber-600 text-white rounded-full text-[9px] font-black uppercase tracking-tighter shadow-xl">
             <TrendingUp className="w-3.5 h-3.5" />
-            FEATURED
+            {t.deals.featured}
           </div>
         )}
 
@@ -112,26 +113,26 @@ function DealCard({ loan, idx, profile, onSelect }: DealCardProps) {
 
         <div className="grid grid-cols-2 gap-y-6 gap-x-4 mb-8">
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Amount</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t.deals.amount}</p>
             <p className="text-lg font-bold text-slate-900">${loan.loanAmount.toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Raised</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t.deals.raised}</p>
             <p className="text-lg font-bold text-amber-600">${(loan.amountRaised || 0).toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Yield</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t.deals.yield}</p>
             <p className="text-lg font-bold text-slate-900">{loan.interestRate}%</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Maturity</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t.deals.maturity}</p>
             <p className="text-sm font-bold text-slate-600">{new Date(loan.maturityDate).toLocaleDateString()}</p>
           </div>
         </div>
 
         <div className="mb-8">
           <div className="flex justify-between items-end mb-2">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Progress</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.deals.progress}</span>
             <span className="text-xs font-bold text-amber-700">{progress}%</span>
           </div>
           <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/30">
@@ -150,14 +151,14 @@ function DealCard({ loan, idx, profile, onSelect }: DealCardProps) {
             className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-amber-700 transition-all shadow-lg flex items-center justify-center gap-2 group/btn"
           >
             <TrendingUp className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-            I WANT TO INVEST
+            {t.deals.iWantToInvest}
           </button>
           
           <button 
             onClick={profile ? onSelect : () => navigate('/login')}
             className="w-full text-[10px] font-black text-slate-400 hover:text-amber-700 tracking-[0.2em] uppercase transition-colors"
           >
-            Learn More
+            {t.deals.learnMore}
           </button>
         </div>
       </div>
@@ -419,28 +420,28 @@ export default function Deals() {
                 <div className="grid md:grid-cols-2 gap-12 mb-10">
                    <div className="space-y-6">
                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                         <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Financial Overview</h5>
+                         <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">{t.deals.details.financialOverview}</h5>
                          <div className="space-y-4">
                             <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
-                               <span className="text-sm font-medium text-slate-500">Loan Amount</span>
+                               <span className="text-sm font-medium text-slate-500">{t.deals.details.loanAmount}</span>
                                <span className="font-bold text-slate-900">${selectedLoan.loanAmount.toLocaleString()}</span>
                             </div>
                             {profile && (
                               <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
-                                 <span className="text-sm font-medium text-slate-500">ARV (After Repair Value)</span>
+                                 <span className="text-sm font-medium text-slate-500">{t.deals.details.arv}</span>
                                  <span className="font-bold text-emerald-600">${(selectedLoan.arv || 0).toLocaleString()}</span>
                               </div>
                             )}
                             <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
-                               <span className="text-sm font-medium text-slate-500">Amount Raised</span>
+                               <span className="text-sm font-medium text-slate-500">{t.deals.details.amountRaised}</span>
                                <span className="font-bold text-amber-600">${(selectedLoan.amountRaised || 0).toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
-                               <span className="text-sm font-medium text-slate-500">Interest Rate</span>
+                               <span className="text-sm font-medium text-slate-500">{t.deals.details.interestRate}</span>
                                <span className="font-bold text-emerald-600">{selectedLoan.interestRate}% P.A</span>
                             </div>
                             <div className="flex justify-between items-center">
-                               <span className="text-sm font-medium text-slate-500">Monthly Yield</span>
+                               <span className="text-sm font-medium text-slate-500">{t.deals.details.monthlyYield}</span>
                                <span className="font-bold text-slate-900">${selectedLoan.monthlyPayment.toLocaleString()}</span>
                             </div>
                          </div>
@@ -449,7 +450,7 @@ export default function Deals() {
                        <div className="flex items-center gap-4 p-4 bg-amber-50/50 rounded-2xl border border-amber-100/50">
                           <Clock className="w-5 h-5 text-amber-700" />
                           <div>
-                             <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Maturity Date</p>
+                             <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">{t.deals.details.maturityDate}</p>
                              <p className="text-sm font-bold text-slate-800">{new Date(selectedLoan.maturityDate).toLocaleDateString()}</p>
                           </div>
                        </div>
@@ -461,9 +462,9 @@ export default function Deals() {
                           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
                             <Clock className="w-8 h-8 text-amber-600" />
                           </div>
-                          <h5 className="text-xl font-serif font-bold text-slate-900 mb-3">Investor Access Only</h5>
+                          <h5 className="text-xl font-serif font-bold text-slate-900 mb-3">{t.deals.details.investorAccess}</h5>
                           <p className="text-slate-500 text-xs max-w-xs mx-auto leading-relaxed mb-8">
-                            Documents and borrower details are only available to registered FNH Capital investors.
+                            {t.deals.details.investorAccessDesc}
                           </p>
                           <div className="flex flex-col gap-3">
                             <button 
@@ -473,7 +474,7 @@ export default function Deals() {
                               }}
                               className="w-full py-3 bg-amber-600 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all text-sm"
                             >
-                              Register Now
+                              {t.deals.details.registerNow}
                             </button>
                             <button 
                               onClick={() => {
@@ -482,14 +483,14 @@ export default function Deals() {
                               }}
                               className="w-full py-3 bg-white border border-slate-200 text-slate-900 rounded-xl font-bold hover:border-slate-900 transition-all text-sm"
                             >
-                              Investor Login
+                              {t.deals.details.investorLogin}
                             </button>
                           </div>
                         </div>
                       ) : (
                         <div className="space-y-6">
                            <div>
-                             <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Associated Documents ({selectedLoanDocs.length})</h5>
+                             <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">{t.deals.details.associatedDocs} ({selectedLoanDocs.length})</h5>
                              <div className="space-y-3">
                                {selectedLoanDocs.map((doc, i) => (
                                  <button 
@@ -502,14 +503,14 @@ export default function Deals() {
                                    </div>
                                    <div className="flex-1 min-w-0">
                                      <p className="text-sm font-bold text-slate-900 truncate">{doc.name}</p>
-                                     <p className="text-[10px] text-slate-400">Project Document • {new Date(doc.uploadedAt).toLocaleDateString()}</p>
+                                     <p className="text-[10px] text-slate-400">{t.deals.details.projectDoc} • {new Date(doc.uploadedAt).toLocaleDateString()}</p>
                                    </div>
                                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-amber-700 group-hover:ml-1 transition-all" />
                                  </button>
                                ))}
                                {selectedLoanDocs.length === 0 && (
                                  <div className="p-8 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                                    <p className="text-xs text-slate-400 font-medium italic">No documents available.</p>
+                                    <p className="text-xs text-slate-400 font-medium italic">{t.deals.details.noDocs}</p>
                                  </div>
                                )}
                              </div>
@@ -518,7 +519,7 @@ export default function Deals() {
                            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                               <User className="w-5 h-5 text-slate-400" />
                               <div>
-                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Borrower</p>
+                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.deals.details.borrower}</p>
                                  <p className="text-sm font-bold text-slate-800">{selectedLoan.borrowerName}</p>
                               </div>
                            </div>
@@ -532,7 +533,7 @@ export default function Deals() {
                      onClick={() => setSelectedLoan(null)}
                      className="px-12 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg active:scale-95"
                    >
-                     Close Explorer
+                     {t.deals.details.closeExplorer}
                    </button>
                 </div>
               </div>
@@ -575,12 +576,9 @@ export default function Deals() {
                         <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
                           <AlertCircle className="w-10 h-10 text-amber-600" />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-2">Review Mode</h3>
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">{t.deals.details.reviewMode}</h3>
                         <p className="text-sm text-slate-500 mb-4 leading-relaxed">
-                          For security reasons, some browsers block direct previews of multi-page documents in restricted windows.
-                        </p>
-                        <p className="text-xs text-slate-400 mb-8 italic">
-                          Tip: Try opening the application in a new tab if you need full browser capabilities.
+                          {t.deals.details.downloadDesc}
                         </p>
                         <button 
                            onClick={() => {
@@ -600,7 +598,7 @@ export default function Deals() {
                            className="inline-flex items-center gap-3 px-8 py-4 bg-amber-600 text-white rounded-2xl font-bold hover:bg-amber-700 transition-all shadow-xl active:scale-95"
                         >
                           <Download className="w-5 h-5" />
-                          DOWNLOAD & REVIEW
+                          {t.deals.details.downloadReview}
                         </button>
                       </div>
                     )}

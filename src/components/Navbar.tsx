@@ -59,10 +59,10 @@ export default function Navbar() {
       id: "investors",
       subItems: [
         { label: t.investors.badge, id: "investors" },
-        { label: 'Join Our Investor Network', id: "join-investor", icon: <UserPlus className="w-4 h-4" /> },
+        { label: t.nav.joinNetwork, id: "join-investor", icon: <UserPlus className="w-4 h-4" /> },
         { label: t.nav.deals, id: "deals" },
         { label: t.nav.calculator, id: "calculator" },
-        { label: 'FAQ', id: "faq" }
+        { label: t.nav.faq, id: "faq" }
       ]
     },
     { label: t.nav.about, id: "about" },
@@ -225,7 +225,7 @@ export default function Navbar() {
                         className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-all font-medium rounded-xl"
                       >
                         <LogOut className="w-4 h-4" />
-                        Sign Out
+                        {t.nav.signOut}
                       </button>
                     </motion.div>
                   )}
@@ -237,7 +237,7 @@ export default function Navbar() {
                 className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-900 hover:text-amber-700 transition-colors"
               >
                 <LogIn className="w-4 h-4" />
-                Sign In
+                {t.nav.signIn}
               </button>
             )}
           </div>
