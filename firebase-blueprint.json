@@ -47,6 +47,7 @@
         "address": { "type": "string" },
         "loanAmount": { "type": "number" },
         "amountRaised": { "type": "number" },
+        "arv": { "type": "number", "description": "After Repair Value" },
         "images": { "type": "array", "items": { "type": "string" } },
         "isFeatured": { "type": "boolean" },
         "interestRate": { "type": "number" },

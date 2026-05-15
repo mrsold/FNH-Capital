@@ -81,6 +81,7 @@ export interface Loan {
   interestRate: number;
   monthlyPayment: number;
   maturityDate: string;
+  arv?: number;
   amountRaised?: number;
   images?: string[];
   isFeatured?: boolean;

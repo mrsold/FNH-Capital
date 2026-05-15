@@ -117,11 +117,7 @@ function DealCard({ loan, idx, profile, onSelect }: DealCardProps) {
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Raised</p>
-            {profile ? (
-              <p className="text-lg font-bold text-amber-600">${(loan.amountRaised || 0).toLocaleString()}</p>
-            ) : (
-              <div className="h-7 w-24 bg-slate-100 rounded-lg animate-pulse" />
-            )}
+            <p className="text-lg font-bold text-amber-600">${(loan.amountRaised || 0).toLocaleString()}</p>
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Yield</p>
@@ -129,11 +125,7 @@ function DealCard({ loan, idx, profile, onSelect }: DealCardProps) {
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Maturity</p>
-            {profile ? (
-              <p className="text-sm font-bold text-slate-600">{new Date(loan.maturityDate).toLocaleDateString()}</p>
-            ) : (
-              <p className="text-xs font-bold text-slate-400 italic">Protected</p>
-            )}
+            <p className="text-sm font-bold text-slate-600">{new Date(loan.maturityDate).toLocaleDateString()}</p>
           </div>
         </div>
 
@@ -423,110 +415,117 @@ export default function Deals() {
                   </div>
                 )}
 
-                {!profile ? (
-                  <div className="py-12 px-8 text-center bg-slate-50 rounded-[2rem] border border-slate-100">
-                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-sm">
-                      <Clock className="w-10 h-10 text-amber-600" />
-                    </div>
-                    <h5 className="text-2xl font-serif font-bold text-slate-900 mb-4">Investor Access Only</h5>
-                    <p className="text-slate-500 text-sm max-w-md mx-auto leading-relaxed mb-10">
-                      To protect our clients and maintain our exclusive network, full deal documentation, borrower information, and detailed financials are only available to registered FNH Capital investors.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <button 
-                        onClick={() => {
-                          setSelectedLoan(null);
-                          navigate('/signup');
-                        }}
-                        className="px-8 py-4 bg-amber-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
-                      >
-                        Register Now
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setSelectedLoan(null);
-                          navigate('/login');
-                        }}
-                        className="px-8 py-4 bg-white border border-slate-200 text-slate-900 rounded-xl font-bold hover:border-slate-900 transition-all"
-                      >
-                        Investor Login
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid md:grid-cols-2 gap-12 mb-10">
-                       <div className="space-y-6">
-                          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                             <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Financial Overview</h5>
-                             <div className="space-y-4">
-                                <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
-                                   <span className="text-sm font-medium text-slate-500">Loan Amount</span>
-                                   <span className="font-bold text-slate-900">${selectedLoan.loanAmount.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
-                                   <span className="text-sm font-medium text-slate-500">Amount Raised</span>
-                                   <span className="font-bold text-amber-600">${(selectedLoan.amountRaised || 0).toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
-                                   <span className="text-sm font-medium text-slate-500">Interest Rate</span>
-                                   <span className="font-bold text-emerald-600">{selectedLoan.interestRate}% P.A</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                   <span className="text-sm font-medium text-slate-500">Monthly Yield</span>
-                                   <span className="font-bold text-slate-900">${selectedLoan.monthlyPayment.toLocaleString()}</span>
-                                </div>
-                             </div>
-                          </div>
-
-                          <div className="flex items-center gap-4 p-4 bg-amber-50/50 rounded-2xl border border-amber-100/50">
-                             <Clock className="w-5 h-5 text-amber-700" />
-                             <div>
-                                <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Maturity Date</p>
-                                <p className="text-sm font-bold text-slate-800">{new Date(selectedLoan.maturityDate).toLocaleDateString()}</p>
-                             </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                             <User className="w-5 h-5 text-slate-400" />
-                             <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Borrower</p>
-                                <p className="text-sm font-bold text-slate-800">{selectedLoan.borrowerName}</p>
-                             </div>
-                          </div>
-                       </div>
-
-                       <div className="space-y-6">
-                          <div>
-                            <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Associated Documents ({selectedLoanDocs.length})</h5>
-                            <div className="space-y-3">
-                              {selectedLoanDocs.map((doc, i) => (
-                                <button 
-                                  key={doc.id || i}
-                                  onClick={() => setPreviewDoc(doc)}
-                                  className="w-full flex items-center gap-3 p-4 bg-white border border-slate-100 rounded-2xl hover:border-amber-200 hover:shadow-md transition-all group text-left"
-                                >
-                                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-amber-700 group-hover:bg-amber-50 transition-colors">
-                                    <FileText className="w-5 h-5" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-slate-900 truncate">{doc.name}</p>
-                                    <p className="text-[10px] text-slate-400">Project Document • {new Date(doc.uploadedAt).toLocaleDateString()}</p>
-                                  </div>
-                                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-amber-700 group-hover:ml-1 transition-all" />
-                                </button>
-                              ))}
-                              {selectedLoanDocs.length === 0 && (
-                                <div className="p-8 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                                   <p className="text-xs text-slate-400 font-medium italic">No documents available for this case.</p>
-                                </div>
-                              )}
+                {/* Basic Details visible to everyone */}
+                <div className="grid md:grid-cols-2 gap-12 mb-10">
+                   <div className="space-y-6">
+                       <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                         <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Financial Overview</h5>
+                         <div className="space-y-4">
+                            <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
+                               <span className="text-sm font-medium text-slate-500">Loan Amount</span>
+                               <span className="font-bold text-slate-900">${selectedLoan.loanAmount.toLocaleString()}</span>
                             </div>
+                            {profile && (
+                              <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
+                                 <span className="text-sm font-medium text-slate-500">ARV (After Repair Value)</span>
+                                 <span className="font-bold text-emerald-600">${(selectedLoan.arv || 0).toLocaleString()}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
+                               <span className="text-sm font-medium text-slate-500">Amount Raised</span>
+                               <span className="font-bold text-amber-600">${(selectedLoan.amountRaised || 0).toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
+                               <span className="text-sm font-medium text-slate-500">Interest Rate</span>
+                               <span className="font-bold text-emerald-600">{selectedLoan.interestRate}% P.A</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                               <span className="text-sm font-medium text-slate-500">Monthly Yield</span>
+                               <span className="font-bold text-slate-900">${selectedLoan.monthlyPayment.toLocaleString()}</span>
+                            </div>
+                         </div>
+                       </div>
+
+                       <div className="flex items-center gap-4 p-4 bg-amber-50/50 rounded-2xl border border-amber-100/50">
+                          <Clock className="w-5 h-5 text-amber-700" />
+                          <div>
+                             <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Maturity Date</p>
+                             <p className="text-sm font-bold text-slate-800">{new Date(selectedLoan.maturityDate).toLocaleDateString()}</p>
                           </div>
                        </div>
-                    </div>
-                  </>
-                )}
+                   </div>
+
+                   <div className="flex flex-col justify-center">
+                      {!profile ? (
+                        <div className="h-full py-8 px-6 text-center bg-slate-50 rounded-[2rem] border border-slate-100 flex flex-col justify-center">
+                          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                            <Clock className="w-8 h-8 text-amber-600" />
+                          </div>
+                          <h5 className="text-xl font-serif font-bold text-slate-900 mb-3">Investor Access Only</h5>
+                          <p className="text-slate-500 text-xs max-w-xs mx-auto leading-relaxed mb-8">
+                            Documents and borrower details are only available to registered FNH Capital investors.
+                          </p>
+                          <div className="flex flex-col gap-3">
+                            <button 
+                              onClick={() => {
+                                setSelectedLoan(null);
+                                navigate('/signup');
+                              }}
+                              className="w-full py-3 bg-amber-600 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all text-sm"
+                            >
+                              Register Now
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setSelectedLoan(null);
+                                navigate('/login');
+                              }}
+                              className="w-full py-3 bg-white border border-slate-200 text-slate-900 rounded-xl font-bold hover:border-slate-900 transition-all text-sm"
+                            >
+                              Investor Login
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-6">
+                           <div>
+                             <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Associated Documents ({selectedLoanDocs.length})</h5>
+                             <div className="space-y-3">
+                               {selectedLoanDocs.map((doc, i) => (
+                                 <button 
+                                   key={doc.id || i}
+                                   onClick={() => setPreviewDoc(doc)}
+                                   className="w-full flex items-center gap-3 p-4 bg-white border border-slate-100 rounded-2xl hover:border-amber-200 hover:shadow-md transition-all group text-left"
+                                 >
+                                   <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-amber-700 group-hover:bg-amber-50 transition-colors">
+                                     <FileText className="w-5 h-5" />
+                                   </div>
+                                   <div className="flex-1 min-w-0">
+                                     <p className="text-sm font-bold text-slate-900 truncate">{doc.name}</p>
+                                     <p className="text-[10px] text-slate-400">Project Document • {new Date(doc.uploadedAt).toLocaleDateString()}</p>
+                                   </div>
+                                   <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-amber-700 group-hover:ml-1 transition-all" />
+                                 </button>
+                               ))}
+                               {selectedLoanDocs.length === 0 && (
+                                 <div className="p-8 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                                    <p className="text-xs text-slate-400 font-medium italic">No documents available.</p>
+                                 </div>
+                               )}
+                             </div>
+                           </div>
+
+                           <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                              <User className="w-5 h-5 text-slate-400" />
+                              <div>
+                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Borrower</p>
+                                 <p className="text-sm font-bold text-slate-800">{selectedLoan.borrowerName}</p>
+                              </div>
+                           </div>
+                        </div>
+                      )}
+                   </div>
+                </div>
 
                 <div className="flex justify-center border-t border-slate-100 pt-10">
                    <button 

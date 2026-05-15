@@ -168,6 +168,7 @@ export default function AdminDashboard() {
       interestRate: Number(formData.get('interestRate')),
       monthlyPayment: Number(formData.get('monthlyPayment')),
       maturityDate: formData.get('maturityDate') as string,
+      arv: formData.get('arv') ? Number(formData.get('arv')) : 0,
       amountRaised: formData.get('amountRaised') ? Number(formData.get('amountRaised')) : 0,
       isFeatured: formData.get('isFeatured') === 'on',
       images: pendingImages,
@@ -363,6 +364,10 @@ export default function AdminDashboard() {
                           <div>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Amount</p>
                             <p className="text-lg font-bold text-slate-900">${loan.loanAmount.toLocaleString()}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">ARV</p>
+                            <p className="text-lg font-bold text-emerald-600">${(loan.arv || 0).toLocaleString()}</p>
                           </div>
                           <div>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Raised</p>
@@ -609,6 +614,10 @@ export default function AdminDashboard() {
                       <div className="space-y-2">
                         <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Loan Amount ($)</label>
                         <input name="loanAmount" type="number" required defaultValue={editingItem?.loanAmount} className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none font-medium text-sm" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">ARV ($)</label>
+                        <input name="arv" type="number" defaultValue={editingItem?.arv || 0} className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none font-medium text-sm" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Amount Raised ($)</label>
