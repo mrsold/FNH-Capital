@@ -11,7 +11,8 @@ import {
   Lock, 
   User,
   AlertCircle,
-  Briefcase
+  Briefcase,
+  X
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 

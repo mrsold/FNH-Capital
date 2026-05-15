@@ -217,7 +217,7 @@ export const deleteLoan = async (id: string) => {
   }
 }
 
-export const subscribeToLoans = (callback: (loans: Loan[]) => void, constraints: QueryConstraint[] = [], onError?: (error: any) => void) => {
+export const subscribeToLoans = (callback: (loans: Loan[]) => void, constraints: any[] = [], onError?: (error: any) => void) => {
   const q = query(collection(db, 'loans'), ...constraints, orderBy('createdAt', 'desc'));
   return onSnapshot(q, (snapshot) => {
     const loans = snapshot.docs.map(doc => ({

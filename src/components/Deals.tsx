@@ -15,7 +15,7 @@ import {
   Download,
   AlertCircle
 } from 'lucide-react';
-import { where } from 'firebase/firestore';
+import { where, or } from 'firebase/firestore';
 import { getLoans, getLoanDocs, subscribeToLoanDocs, subscribeToLoans, Loan, LoanDocument } from '../services/adminService';
 import { useUser } from '../contexts/UserContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -193,7 +193,12 @@ export default function Deals() {
   useEffect(() => {
     setLoading(true);
     const isAdmin = profile?.role === 'admin';
-    const constraints = isAdmin ? [] : profile ? [] : [where('status', 'in', ['Active', 'Funding'])];
+    const constraints = isAdmin ? [] : profile ? [] : [
+      or(
+        where('status', 'in', ['Active', 'Funding']),
+        where('isFeatured', '==', true)
+      )
+    ];
     
     const unsubscribe = subscribeToLoans((data) => {
       // Show Active and Funding loans first, then Closed
