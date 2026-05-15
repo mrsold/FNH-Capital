@@ -6,61 +6,88 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
     function isAdmin() {
-      return isSignedIn() && 
-             request.auth.token.email_verified == true &&
-             (request.auth.token.email == 'mr.sold@gmail.com' || 
-              (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-               get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
+      return isSignedIn() && (
+        getUserData().role == 'admin' || 
+        request.auth.token.email == 'mr.sold@gmail.com'
+      );
     }
 
-    function isValidUser(data) {
-      return data.uid is string &&
-             data.email is string &&
-             data.role in ['investor', 'borrower', 'admin'] &&
-             data.displayName is string &&
-             data.uid == request.auth.uid &&
-             data.email == request.auth.token.email &&
-             (data.experience == null || data.experience is string) &&
-             (data.createdAt == null || data.createdAt is timestamp) &&
-             // Optional fields based on role
-             (data.role == 'investor' ? (
-                (data.investAmount == null || data.investAmount is string) &&
-                (data.isAccredited == null || data.isAccredited is bool)
-             ) : true) &&
-             (data.role == 'borrower' ? (
-                (data.loanType == null || data.loanType is string) &&
-                (data.loanAmount == null || data.loanAmount is number) &&
-                (data.propertyValue == null || data.propertyValue is number) &&
-                (data.duration == null || data.duration is string)
-             ) : true);
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.]+@?[a-zA-Z0-9_\\-\\.]*$');
     }
 
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // User Profiles
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
-      allow create: if isOwner(userId) && isValidUser(request.resource.data);
-      allow update: if isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role);
-      allow delete: if isAdmin();
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == userId && 
+                    incoming().role != 'admin'; // Cannot self-promote to admin
+      allow update: if isSignedIn() && (
+        (request.auth.uid == userId && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'phone', 'updatedAt'])) ||
+        isAdmin()
+      );
     }
 
-    function isValidDeal(data) {
-      return data.title is string && data.title.size() > 0 &&
-             data.status in ['Active', 'Funding', 'Closed'];
+    // Borrowers & Investors (CUD: Admin only, R: Admin or sometimes listed in loan)
+    match /borrowers/{email} {
+      allow read, write: if isAdmin();
     }
 
-    match /deals/{dealId} {
-      allow read: if true;
-      allow create, update: if isAdmin() && isValidDeal(request.resource.data);
-      allow delete: if isAdmin();
+    match /investors/{email} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.token.email == email);
+      allow write: if isAdmin();
+    }
+
+    // Loans
+    match /loans/{loanId} {
+      function isValidLoan(data) {
+        return data.address is string && data.address.size() <= 300 &&
+               data.loanAmount is number && 
+               (data.get('isFeatured', false) is bool) &&
+               (data.get('images', []) is list) &&
+               data.status in ['Active', 'Funding', 'Closed'];
+      }
+
+      allow list: if (
+        resource.data.status != 'Closed' || 
+        resource.data.get('isFeatured', false) == true ||
+        isSignedIn()
+      );
+
+      allow get: if (
+        resource.data.status != 'Closed' || 
+        resource.data.get('isFeatured', false) == true ||
+        isSignedIn()
+      );
+
+      allow create, update, delete: if isAdmin();
+
+      // Loan Documents
+      match /docs/{docId} {
+        allow read: if isSignedIn() && (
+          isAdmin() || 
+          get(/databases/$(database)/documents/loans/$(loanId)).data.status != 'Closed' ||
+          (request.auth.token.email in get(/databases/$(database)/documents/loans/$(loanId)).data.investorEmails)
+        );
+        allow write: if isAdmin();
+      }
     }
   }
 }

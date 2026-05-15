@@ -37,6 +37,10 @@ export default function RoleSelection() {
       setError('Please select an investment capacity.');
       return;
     }
+    if (role === 'investor' && !isAccredited) {
+      setError('You must be an accredited investor to join.');
+      return;
+    }
     if (role === 'borrower' && (!loanAmount || !propertyValue || !duration)) {
       setError('Please fill in all loan details.');
       return;
@@ -144,16 +148,16 @@ export default function RoleSelection() {
                     <option value="$1M+">$1M+</option>
                   </select>
                 </div>
-                <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex items-start gap-3 p-5 bg-amber-50/50 rounded-2xl border border-amber-100 group transition-all hover:bg-amber-50">
                   <input 
                     type="checkbox" 
                     id="accredited-role"
                     checked={isAccredited}
                     onChange={(e) => setIsAccredited(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 text-amber-700 focus:ring-amber-500/20"
+                    className="mt-1 w-5 h-5 rounded-lg border-amber-200 text-amber-600 focus:ring-amber-500/20"
                   />
-                  <label htmlFor="accredited-role" className="text-xs font-medium text-slate-600 cursor-pointer">
-                    I am an Accredited Investor
+                  <label htmlFor="accredited-role" className="text-xs font-bold text-slate-700 cursor-pointer select-none leading-relaxed">
+                    {t.contact.form.accreditedCert}
                   </label>
                 </div>
               </>

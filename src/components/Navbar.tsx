@@ -1,13 +1,23 @@
 import { motion, useScroll, useSpring, AnimatePresence } from "motion/react";
-import { LogIn, LogOut, ShieldCheck, Languages, ChevronDown, LayoutDashboard, Calculator } from "lucide-react";
+import { 
+  LogIn, 
+  LogOut, 
+  ShieldCheck, 
+  Languages, 
+  ChevronDown, 
+  LayoutDashboard, 
+  Calculator,
+  UserPlus
+} from "lucide-react";
 import { auth } from "../lib/firebase";
 import { signOut } from "firebase/auth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useUser } from "../contexts/UserContext";
 import { Link, useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import CalculatorModal from "./CalculatorModal";
+import InvestorJoinModal from "./InvestorJoinModal";
 
 export default function Navbar() {
   const { scrollYProgress } = useScroll();
@@ -27,6 +37,20 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const [isInvestorJoinOpen, setIsInvestorJoinOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenJoin = () => navigate('/signup');
+    const handleOpenAuth = () => navigate('/login');
+    
+    window.addEventListener('open-investor-join', handleOpenJoin);
+    window.addEventListener('open-auth-modal', handleOpenAuth);
+    
+    return () => {
+      window.removeEventListener('open-investor-join', handleOpenJoin);
+      window.removeEventListener('open-auth-modal', handleOpenAuth);
+    };
+  }, [navigate]);
 
   const navItems = [
     { label: t.nav.services, id: "services" },
@@ -35,6 +59,7 @@ export default function Navbar() {
       id: "investors",
       subItems: [
         { label: t.investors.badge, id: "investors" },
+        { label: 'Join Our Investor Network', id: "join-investor", icon: <UserPlus className="w-4 h-4" /> },
         { label: t.nav.deals, id: "deals" },
         { label: t.nav.calculator, id: "calculator" },
         { label: 'FAQ', id: "faq" }
@@ -47,6 +72,10 @@ export default function Navbar() {
   const handleNavClick = (id: string, isFaq?: boolean) => {
     if (id === 'calculator') {
       setIsCalculatorOpen(true);
+      return;
+    }
+    if (id === 'join-investor') {
+      navigate('/signup');
       return;
     }
     if (window.location.pathname !== '/') {
@@ -204,7 +233,7 @@ export default function Navbar() {
               </div>
             ) : (
               <button 
-                onClick={() => setIsAuthModalOpen(true)}
+                onClick={() => navigate('/login')}
                 className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-900 hover:text-amber-700 transition-colors"
               >
                 <LogIn className="w-4 h-4" />
@@ -238,6 +267,10 @@ export default function Navbar() {
     <CalculatorModal
       isOpen={isCalculatorOpen}
       onClose={() => setIsCalculatorOpen(false)}
+    />
+    <InvestorJoinModal
+      isOpen={isInvestorJoinOpen}
+      onClose={() => setIsInvestorJoinOpen(false)}
     />
     </>
   );

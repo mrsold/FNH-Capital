@@ -9,47 +9,90 @@
         "email": { "type": "string" },
         "role": { "type": "string", "enum": ["investor", "borrower", "admin"] },
         "displayName": { "type": "string" },
-        "investAmount": { "type": "string" },
-        "isAccredited": { "type": "boolean" },
-        "loanType": { "type": "string" },
-        "loanAmount": { "type": "number" },
-        "propertyValue": { "type": "number" },
-        "duration": { "type": "string" },
-        "experience": { "type": "string" },
+        "phone": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "email", "role"]
     },
-    "Deal": {
-      "title": "Property Deal",
-      "description": "Property investment deal details",
+    "Borrower": {
+      "title": "Borrower",
+      "description": "Borrower contact and identity",
       "type": "object",
       "properties": {
-        "title": { "type": "string" },
-        "description": { "type": "string" },
-        "status": { "type": "string", "enum": ["Active", "Funding", "Closed"] },
-        "imageUrl": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email"]
+    },
+    "Investor": {
+      "title": "Investor",
+      "description": "Investor contact and identity",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email"]
+    },
+    "Loan": {
+      "title": "Loan/Deal",
+      "description": "Detailed loan records for properties",
+      "type": "object",
+      "properties": {
+        "address": { "type": "string" },
         "loanAmount": { "type": "number" },
-        "interestRate": { "type": "string" },
-        "loanPeriod": { "type": "string" },
-        "propertyType": { "type": "string" },
-        "location": { "type": "string" },
-        "fundingProgress": { "type": "number" },
+        "amountRaised": { "type": "number" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "isFeatured": { "type": "boolean" },
+        "interestRate": { "type": "number" },
+        "monthlyPayment": { "type": "number" },
+        "maturityDate": { "type": "string", "format": "date" },
+        "borrowerEmail": { "type": "string" },
+        "borrowerName": { "type": "string" },
+        "investorEmails": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["Active", "Funding", "Closed"] },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["title", "status"]
+      "required": ["address", "loanAmount", "borrowerEmail"]
+    },
+    "LoanDocument": {
+      "title": "Loan Document",
+      "description": "A file associated with a loan",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "uploadedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "url", "uploadedAt"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "User",
-      "description": "User collection"
+      "description": "Unified user accounts"
     },
-    "/deals/{dealId}": {
-      "schema": "Deal",
-      "description": "Investment deals"
+    "/borrowers/{email}": {
+      "schema": "Borrower",
+      "description": "Dedicated borrower records"
+    },
+    "/investors/{email}": {
+      "schema": "Investor",
+      "description": "Dedicated investor records"
+    },
+    "/loans/{loanId}": {
+      "schema": "Loan",
+      "description": "Loan records and history"
+    },
+    "/loans/{loanId}/docs/{docId}": {
+      "schema": "LoanDocument",
+      "description": "Files associated with a loan"
     }
   }
 }

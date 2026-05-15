@@ -52,6 +52,14 @@ export default function CalculatorModal({ isOpen, onClose }: CalculatorModalProp
     });
   }, [loanAmount, interestRate, currentValue, arv, points, renovationCost, closingCosts]);
 
+  const handleContact = () => {
+    onClose();
+    const contactSection = document.getElementById('contact');
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -246,7 +254,7 @@ export default function CalculatorModal({ isOpen, onClose }: CalculatorModalProp
 
             <div className="pt-8 space-y-4">
               <button 
-                onClick={onClose}
+                onClick={handleContact}
                 className="w-full py-4 bg-amber-600 hover:bg-amber-500 text-white rounded-2xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 group"
               >
                 {t.contact.form.submit}

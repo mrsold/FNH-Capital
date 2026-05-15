@@ -15,6 +15,7 @@ import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import AdminDashboard from "./components/AdminDashboard";
 import RoleSelection from "./components/RoleSelection";
+import InvestorAuthPage from "./components/InvestorAuthPage";
 import { useUser } from "./contexts/UserContext";
 
 function MainLayout() {
@@ -59,6 +60,8 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<MainLayout />} />
+        <Route path="/login" element={<InvestorAuthPage />} />
+        <Route path="/signup" element={<InvestorAuthPage />} />
         <Route 
           path="/admin" 
           element={

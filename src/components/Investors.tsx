@@ -2,9 +2,13 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { TrendingUp, ShieldCheck, Calendar, ScrollText, ArrowRight, ChevronDown, X } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../contexts/UserContext";
 
 export default function Investors() {
   const { t } = useLanguage();
+  const { profile } = useUser();
+  const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showFaqModal, setShowFaqModal] = useState(false);
   
@@ -41,13 +45,13 @@ export default function Investors() {
             </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
-              <a 
-                href="#contact"
+              <button 
+                onClick={() => navigate(profile ? '#contact' : '/signup')}
                 className="px-8 py-4 bg-slate-900 text-white rounded-full font-medium hover:bg-slate-800 transition-all flex items-center justify-center gap-2 group"
               >
                 {t.investors.cta}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </a>
+              </button>
               <button 
                 onClick={() => setShowFaqModal(true)}
                 className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-medium hover:border-amber-700/30 transition-all flex items-center justify-center gap-2 group"

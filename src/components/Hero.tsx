@@ -23,7 +23,7 @@ export default function Hero() {
               {t.hero.badge}
             </div>
             
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-serif font-light leading-[0.9] text-slate-900 mb-8 whitespace-pre-line">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-light leading-[1.1] text-slate-900 mb-8 whitespace-pre-line tracking-tight">
               {t.hero.title}
             </h1>
             
