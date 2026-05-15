@@ -317,15 +317,7 @@ export default function Deals() {
           </div>
         )}
 
-        <div className="mt-20 text-center">
-           <p className="text-slate-400 text-sm font-medium mb-4">{t.deals.investQuery}</p>
-           <button 
-             onClick={() => navigate('/signup')}
-             className="px-10 py-5 bg-slate-900 text-white rounded-2xl font-bold hover:bg-amber-700 transition-all shadow-xl hover:shadow-2xl active:scale-95"
-           >
-             {t.deals.joinNetwork}
-           </button>
-        </div>
+
       </div>
 
       {/* Case Details Modal */}
