@@ -17,8 +17,11 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        getUserData().role == 'admin' || 
-        request.auth.token.email == 'mr.sold@gmail.com'
+        request.auth.token.email == 'mr.sold@gmail.com' ||
+        request.auth.token.email.lower() == 'mr.sold@gmail.com' ||
+        request.auth.token.get('email', '').lower() == 'mr.sold@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
     }
 
@@ -84,9 +87,10 @@ service cloud.firestore {
         allow read: if isSignedIn() && (
           isAdmin() || 
           get(/databases/$(database)/documents/loans/$(loanId)).data.status != 'Closed' ||
+          (request.auth.token.get('email', '') in get(/databases/$(database)/documents/loans/$(loanId)).data.investorEmails) ||
           (request.auth.token.email in get(/databases/$(database)/documents/loans/$(loanId)).data.investorEmails)
         );
-        allow write: if isAdmin();
+        allow create, update, delete: if isAdmin();
       }
     }
   }

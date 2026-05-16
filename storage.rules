@@ -1,0 +1,33 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Robust admin check for storage
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'mr.sold@gmail.com' ||
+        request.auth.token.email.lower() == 'mr.sold@gmail.com' ||
+        request.auth.token.get('email', '').lower() == 'mr.sold@gmail.com' ||
+        // Check firestore as fallback
+        (firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) && 
+         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        (firestore.exists(/databases/ai-studio-b78f1835-0aac-4881-8d92-f54c237d049e/documents/users/$(request.auth.uid)) && 
+         firestore.get(/databases/ai-studio-b78f1835-0aac-4881-8d92-f54c237d049e/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    match /properties/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /loans/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Default allow for authenticated if admin (matches most paths used)
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

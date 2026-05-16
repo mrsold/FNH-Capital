@@ -42,6 +42,7 @@ import {
   subscribeToLoans,
   updateLoanDocStats,
   syncAllLoanDocStats,
+  uploadFile,
   Borrower,
   Investor,
   Loan,
@@ -63,6 +64,8 @@ export default function AdminDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStats, setUploadStats] = useState<{transferred: number, total: number} | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [selectedLoanForDocs, setSelectedLoanForDocs] = useState<Loan | null>(null);
   const [selectedLoanDocs, setSelectedLoanDocs] = useState<LoanDocument[]>([]);
@@ -70,6 +73,7 @@ export default function AdminDashboard() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [pendingImages, setPendingImages] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [docError, setDocError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isModalOpen && editingItem && activeTab === 'loans') {
@@ -205,39 +209,111 @@ export default function AdminDashboard() {
     fetchData();
   };
 
-  const handleAddDocuments = async (loanId: string, newDocs: { name: string, url: string }[]) => {
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const handleAddDocuments = async (loanId: string, files: File[]) => {
     setIsUploading(true);
+    setUploadProgress(0);
+    setUploadStats(null);
+    console.log(`Starting upload for loan: ${loanId}, files: ${files.length}`);
     try {
-      const docsToSave: Omit<LoanDocument, 'id'>[] = newDocs.map(doc => ({
-        name: doc.name,
-        url: doc.url,
-        uploadedAt: new Date().toISOString()
-      }));
+      const uploadedDocs: { name: string, url: string, uploadedAt: string }[] = [];
       
-      const promises = docsToSave.map(doc => addLoanDoc(loanId, doc));
-      await Promise.all(promises);
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const storagePath = `loans/${loanId}/documents/${Date.now()}_${file.name}`;
+        console.log(`Uploading file ${i+1}/${files.length}: ${file.name} to ${storagePath}`);
+        
+        const downloadUrl = await uploadFile(storagePath, file, (progress, snapshot) => {
+          // Average progress across all files
+          const overallProgress = ((i / files.length) * 100) + (progress / files.length);
+          setUploadProgress(overallProgress);
+          if (snapshot) {
+            setUploadStats({
+              transferred: snapshot.bytesTransferred,
+              total: snapshot.totalBytes
+            });
+          }
+        });
+
+        console.log(`File ${file.name} uploaded to storage. Saving to Firestore...`);
+        const docData = {
+          name: file.name,
+          url: downloadUrl,
+          uploadedAt: new Date().toISOString()
+        };
+        await addLoanDoc(loanId, docData);
+        console.log(`File ${file.name} saved to Firestore.`);
+        uploadedDocs.push(docData);
+      }
       
-      // Calculate updated stats locally to ensure UI consistency
-      const updatedDocs = [...selectedLoanDocs, ...docsToSave];
-      await updateLoanDocStats(loanId, updatedDocs as LoanDocument[]);
-    } catch (error) {
+      console.log('All files uploaded and saved. Updating loan stats...');
+      await updateLoanDocStats(loanId);
+      console.log('Loan stats updated.');
+    } catch (error: any) {
       console.error("Document upload failed:", error);
-      alert("Failed to save documents. They may be too large or you might have lost your session. Please ensure each file is under 500KB.");
+      let errorMessage = "Failed to save documents.";
+      
+      if (error.code === 'storage/unauthorized') {
+        errorMessage = "Storage access denied. This is usually because your Firebase Storage rules block uploads. Please ensure you've deployed the storage.rules file to your Firebase console.";
+      } else if (error.code === 'storage/size-limit-exceeded') {
+        errorMessage = error.message;
+      } else if (error.code === 'storage/retry-limit-exceeded') {
+        errorMessage = "The maximum time limit for the upload was reached. Check your connection.";
+      } else if (error.code === 'storage/canceled') {
+        errorMessage = "Upload was canceled.";
+      }
+      
+      alert(`${errorMessage}\n\nTechnical Details: ${error.code || error.message}`);
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
+      setUploadStats(null);
     }
   };
 
-  const handleRemoveDocument = async (loanId: string, docId: string) => {
-    if (!window.confirm("Remove this document? This cannot be undone.")) return;
+  const handleRemoveDocument = async (loanId: string, doc: LoanDocument) => {
+    console.log(`[DEBUG] handleRemoveDocument START. Loan: ${loanId}, DocName: ${doc.name}, DocID: ${doc.id}`);
+    
     setIsUploading(true);
+    setUploadProgress(0);
+    setDocError(null);
+    console.log(`[DEBUG] Attempting to delete document. LoanID: ${loanId}, DocID: ${doc.id}, URL: ${doc.url}`);
+    
     try {
-      await deleteLoanDoc(loanId, docId);
-      const updatedDocs = selectedLoanDocs.filter(d => d.id !== docId);
+      if (!doc.id) {
+        console.error("[DEBUG] Missing doc.id!", doc);
+        throw new Error("Document ID is missing. Cannot delete.");
+      }
+      
+      await deleteLoanDoc(loanId, doc.id, doc.url);
+      console.log('[DEBUG] Document deleted successfully from Firestore.');
+      
+      const updatedDocs = selectedLoanDocs.filter(d => d.id !== doc.id);
       await updateLoanDocStats(loanId, updatedDocs);
-    } catch (error) {
-      console.error("Document deletion failed:", error);
-      alert("Could not delete the document. Please try again.");
+      console.log('[DEBUG] Loan stats updated after deletion.');
+      
+      // The subscription will handle updating selectedLoanDocs UI
+    } catch (error: any) {
+      console.error("[DEBUG] Document deletion FAILED:", error);
+      let errorMsg = error.message || 'Unknown error';
+      
+      try {
+        if (error.message && error.message.startsWith('{')) {
+          const parsed = JSON.parse(error.message);
+          errorMsg = `${parsed.error}`;
+        }
+      } catch (e) {
+        // Not JSON
+      }
+      
+      setDocError(`Delete failed: ${errorMsg}`);
     } finally {
       setIsUploading(false);
     }
@@ -681,18 +757,21 @@ export default function AdminDashboard() {
                                 input.accept = 'image/*';
                                 input.onchange = async (e: any) => {
                                   const files = Array.from(e.target.files as FileList);
-                                  const newImages = await Promise.all(files.map(file => {
-                                    return new Promise<string>((resolve) => {
-                                      const reader = new FileReader();
-                                      reader.onload = async () => {
-                                        const result = reader.result as string;
-                                        const compressed = await compressImage(result);
-                                        resolve(compressed);
-                                      };
-                                      reader.readAsDataURL(file);
+                                  setIsSaving(true);
+                                  try {
+                                    const uploadPromises = files.map(async (file) => {
+                                      const storagePath = `properties/images/${Date.now()}_${file.name}`;
+                                      return await uploadFile(storagePath, file);
                                     });
-                                  }));
-                                  setPendingImages(prev => [...prev, ...newImages]);
+                                    const newUrls = await Promise.all(uploadPromises);
+                                    setPendingImages(prev => [...prev, ...newUrls]);
+                                  } catch (err: any) {
+                                    console.error("Image upload failed:", err);
+                                    const msg = err.code === 'storage/size-limit-exceeded' ? err.message : "Image upload failed. Check your connection or storage permissions.";
+                                    alert(msg);
+                                  } finally {
+                                    setIsSaving(false);
+                                  }
                                 };
                                 input.click();
                               }}
@@ -786,8 +865,26 @@ export default function AdminDashboard() {
                     className="absolute inset-0 z-[120] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center"
                   >
                     <div className="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-4" />
-                    <p className="text-slate-900 font-bold">Processing Documents...</p>
-                    <p className="text-xs text-slate-500 mt-2 font-medium uppercase tracking-widest">Saving to database</p>
+                    <p className="text-slate-900 font-bold">
+                      {isUploading && uploadStats ? `Uploading: ${uploadProgress.toFixed(1)}%` : 'Processing Documents...'}
+                    </p>
+                    {uploadStats && (
+                      <p className="text-[10px] text-slate-500 font-bold mt-1 bg-slate-100 px-4 py-1.5 rounded-full uppercase tracking-widest border border-slate-200 shadow-sm">
+                        {formatSize(uploadStats.transferred)} / {formatSize(uploadStats.total)}
+                      </p>
+                    )}
+                    {uploadProgress > 0 && (
+                      <div className="w-64 h-2 bg-slate-100 rounded-full mt-4 overflow-hidden border border-slate-200">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${uploadProgress}%` }}
+                          className="h-full bg-amber-600 shadow-[0_0_10px_rgba(217,119,6,0.5)]"
+                        />
+                      </div>
+                    )}
+                    <p className="text-xs text-slate-500 mt-2 font-medium uppercase tracking-widest">
+                      {uploadStats ? 'Streaming to Cloud Storage' : 'Preparing Documents'}
+                    </p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -818,43 +915,35 @@ export default function AdminDashboard() {
                      <h3 className="text-sm font-bold text-slate-900">Document Repository</h3>
                      <p className="text-xs text-slate-400 mt-1">Manage files for this loan session ({selectedLoanDocs.length}).</p>
                    </div>
-                   <button 
-                     disabled={isUploading}
-                     onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.multiple = true;
-                        input.accept = '.pdf,.doc,.docx,.jpg,.png';
-                        input.onchange = async (e: any) => {
-                          const files = Array.from(e.target.files as FileList);
-                          if (files.length > 0) {
-                            const uploadPromises = files.map(file => {
-                              return new Promise<{name: string, url: string} | null>((resolve) => {
-                                if (file.size > 500000) {
-                                  alert(`File "${file.name}" is too large (max 500KB).`);
-                                  resolve(null);
-                                  return;
-                                }
-                                const reader = new FileReader();
-                                reader.onload = () => resolve({ name: file.name, url: reader.result as string });
-                                reader.onerror = () => resolve(null);
-                                reader.readAsDataURL(file);
-                              });
-                            });
-                            const results = await Promise.all(uploadPromises);
-                            const uploads = results.filter((r): r is { name: string, url: string } => r !== null);
-                            if (uploads.length > 0) {
-                              await handleAddDocuments(selectedLoanForDocs.id!, uploads);
+                   <div className="flex flex-col items-end gap-2">
+                     <button 
+                       disabled={isUploading}
+                       onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.multiple = true;
+                          input.accept = '.pdf,.doc,.docx,.jpg,.png';
+                          input.onchange = async (e: any) => {
+                            const files = Array.from(e.target.files as FileList);
+                            if (files.length > 0) {
+                              setDocError(null);
+                              await handleAddDocuments(selectedLoanForDocs.id!, files);
                             }
-                          }
-                        };
-                        input.click();
-                     }}
-                     className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl text-xs font-bold hover:bg-amber-600 transition-all shadow-lg active:scale-95 disabled:opacity-50"
-                   >
-                     <FilePlus className="w-5 h-5" />
-                     ADD DOCUMENTS
-                   </button>
+                          };
+                          input.click();
+                       }}
+                       className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl text-xs font-bold hover:bg-amber-600 transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                     >
+                       <FilePlus className="w-5 h-5" />
+                       ADD DOCUMENTS
+                     </button>
+                     {docError && (
+                       <p className="text-[10px] text-red-500 font-bold bg-red-50 px-3 py-1 rounded-lg border border-red-100 flex items-center gap-1">
+                         <AlertCircle className="w-3 h-3" />
+                         {docError}
+                       </p>
+                     )}
+                   </div>
                 </div>
 
                 <div className="grid gap-4">
@@ -881,7 +970,7 @@ export default function AdminDashboard() {
                          </button>
                          <button 
                            disabled={isUploading}
-                           onClick={() => handleRemoveDocument(selectedLoanForDocs.id!, doc.id!)}
+                           onClick={() => handleRemoveDocument(selectedLoanForDocs.id!, doc)}
                            className="p-3 bg-white rounded-xl text-slate-400 hover:text-red-500 border border-slate-100 transition-all hover:shadow-md hover:border-red-100 disabled:opacity-50"
                            title="Delete Document"
                          >
@@ -959,18 +1048,22 @@ export default function AdminDashboard() {
                         </p>
                         <button 
                            onClick={() => {
-                             const base64 = previewDoc.url.split(',')[1];
-                             const mime = previewDoc.url.split(',')[0].split(':')[1].split(';')[0];
-                             const bytes = atob(base64);
-                             const arr = new Uint8Array(bytes.length);
-                             for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-                             const blob = new Blob([arr], { type: mime });
-                             const url = URL.createObjectURL(blob);
-                             const a = document.createElement('a');
-                             a.href = url;
-                             a.download = previewDoc.name;
-                             a.click();
-                             URL.revokeObjectURL(url);
+                             if (previewDoc.url.startsWith('data:')) {
+                               const base64 = previewDoc.url.split(',')[1];
+                               const mime = previewDoc.url.split(',')[0].split(':')[1].split(';')[0];
+                               const bytes = atob(base64);
+                               const arr = new Uint8Array(bytes.length);
+                               for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+                               const blob = new Blob([arr], { type: mime });
+                               const url = URL.createObjectURL(blob);
+                               const a = document.createElement('a');
+                               a.href = url;
+                               a.download = previewDoc.name;
+                               a.click();
+                               URL.revokeObjectURL(url);
+                             } else {
+                               window.open(previewDoc.url, '_blank');
+                             }
                            }}
                            className="inline-flex items-center gap-3 px-8 py-4 bg-amber-600 text-white rounded-2xl font-bold hover:bg-amber-700 transition-all shadow-xl active:scale-95"
                         >

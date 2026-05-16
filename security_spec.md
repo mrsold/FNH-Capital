@@ -31,4 +31,4 @@
 | /borrowers| Admin-only write | N/A | Strict ID validation |
 | /investors| Admin-only write | N/A | Strict ID validation |
 | /loans | Admin-only write | isValidStatus() check | Size checks on all strings |
-| /loans/docs | Admin-only write | N/A | 500KB limit (logic) + size checks |
+| /loans/docs | Admin-only write | N/A | Firebase Storage (Large Files) |

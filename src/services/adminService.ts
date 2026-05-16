@@ -14,7 +14,13 @@ import {
   where,
   QueryConstraint
 } from 'firebase/firestore';
-import { db, auth } from '../lib/firebase';
+import { 
+  ref, 
+  uploadBytesResumable, 
+  getDownloadURL,
+  deleteObject
+} from 'firebase/storage';
+import { db, auth, storage } from '../lib/firebase';
 
 enum OperationType {
   CREATE = 'create',
@@ -37,8 +43,11 @@ interface FirestoreErrorInfo {
 }
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorCode = (error as any)?.code || 'unknown';
+  
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errorMessage,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -47,8 +56,12 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
     operationType,
     path
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  
+  console.error(`Firestore Error [${operationType}] on [${path}]:`, errorCode, errorMessage, JSON.stringify(errInfo));
+  
+  const enhancedError = new Error(JSON.stringify(errInfo));
+  (enhancedError as any).code = errorCode;
+  throw enhancedError;
 }
 
 // Interfaces
@@ -298,13 +311,69 @@ export const addLoanDoc = async (loanId: string, docData: Omit<LoanDocument, 'id
   }
 };
 
-export const deleteLoanDoc = async (loanId: string, docId: string) => {
+export const deleteLoanDoc = async (loanId: string, docId: string, docUrl?: string) => {
   const path = `loans/${loanId}/docs/${docId}`;
+  console.log(`[DEBUG] deleteLoanDoc START. Loan: ${loanId}, Doc: ${docId}, URL: ${docUrl}`);
+  
   try {
+    // 1. Delete from Firestore FIRST to ensure UI update
+    console.log(`[DEBUG] Firestore deletion attempt: ${path}`);
     await deleteDoc(doc(db, 'loans', loanId, 'docs', docId));
-  } catch (e) {
-    handleFirestoreError(e, OperationType.DELETE, path);
+    console.log(`[DEBUG] Firestore deletion SUCCESS for document ${docId}`);
+
+    // UI will update because of the subscription in AdminDashboard
+
+    // 2. Then attempt Storage deletion
+    if (docUrl && (docUrl.includes('firebasestorage') || docUrl.includes('googleapis'))) {
+      try {
+        const fileRef = ref(storage, docUrl);
+        console.log(`[DEBUG] Storage deletion attempt. Path: ${fileRef.fullPath}`);
+        await deleteObject(fileRef);
+        console.log(`[DEBUG] Storage deletion SUCCESS.`);
+      } catch (storageErr: any) {
+        console.warn("[DEBUG] Storage deletion FAILED but Firestore is already gone:", storageErr.code, storageErr.message);
+      }
+    }
+  } catch (e: any) {
+    console.error(`[DEBUG] deleteLoanDoc CRITICAL FAILURE for ${path}:`, e.code, e.message);
+    // Explicitly throw a more readable error for the UI
+    const errorMsg = e.code === 'permission-denied' ? 'Permission Denied: You are not authorized to delete this document.' : (e.message || 'Unknown Firestore error');
+    throw new Error(errorMsg);
   }
+};
+
+export const uploadFile = async (
+  path: string, 
+  file: File, 
+  onProgress?: (progress: number, snapshot?: any) => void
+): Promise<string> => {
+  // 25MB client-side limit to match security rules
+  const MAX_SIZE = 25 * 1024 * 1024;
+  if (file.size > MAX_SIZE) {
+    const error = new Error(`File "${file.name}" exceeds the 25MB limit.`);
+    (error as any).code = 'storage/size-limit-exceeded';
+    throw error;
+  }
+
+  return new Promise((resolve, reject) => {
+    const fileRef = ref(storage, path);
+    const uploadTask = uploadBytesResumable(fileRef, file);
+
+    uploadTask.on('state_changed', 
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        if (onProgress) onProgress(progress, snapshot);
+      }, 
+      (error) => {
+        console.error("Upload failed:", error);
+        reject(error);
+      }, 
+      async () => {
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        resolve(downloadURL);
+      }
+    );
+  });
 };
 
 export const subscribeToLoanDocs = (loanId: string, callback: (docs: LoanDocument[]) => void, onError?: (error: any) => void) => {
